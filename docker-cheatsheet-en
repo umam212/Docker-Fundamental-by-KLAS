@@ -1,0 +1,687 @@
+/*
+| ------------------------------------------------------------------------------
+| DOCKER FUNDAMENTAL ON CANGKRUKAN KLAS, JUNE 2, 2018
+| ------------------------------------------------------------------------------
+*/
+
+/*
+| ------------------------------------------------------------------------------
+| Part 1 - Install Docker in Ubuntu Server 18.04
+| ------------------------------------------------------------------------------
+| Part one is step to tell you how to install Docker in Ubuntu Server 18.04
+|
+| ------------------------------------------------------------------------------
+| Instruction
+| ------------------------------------------------------------------------------
+| 1. Install Docker and Enable Service
+| 2. Show Docker Version and Info
+| 3. Run Docker without SUDO, Optional Step
+| 4. Test Docker Installation
+|
+*/
+
+/*
+| -------------------------------------------------------------------------------
+| Install and enable service
+| -------------------------------------------------------------------------------
+| This step including configure local repository, update, install docker-ce and
+| enable the service at boot.
+|
+*/
+sudo vi /etc/apt/sources.list.d/docker.list
+
+# STABLE (NOT YET AVAILABLE)
+deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+# EDGE:
+deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic edge
+
+sudo apt update
+sudo apt install docker-ce
+sudo systemctl status docker
+sudo systemctl start docker
+sudo systemctl enable docker
+
+/*
+| -------------------------------------------------------------------------------
+| Show docker version and info
+| -------------------------------------------------------------------------------
+| This step is useful to know the version and information about Docker
+|
+*/
+docker --version
+docker version
+docker info
+
+/*
+| -------------------------------------------------------------------------------
+| Run Docker without SUDO, Optional Step
+| -------------------------------------------------------------------------------
+| Without sudo, you can run the Docker without any misgivings
+|
+*/
+sudo usermod -aG docker ${USER}
+su - ${USER}
+id -nG
+
+/*
+| -------------------------------------------------------------------------------
+| Test docker installation by running simple docker image
+| -------------------------------------------------------------------------------
+| This step is useful to check Docker installation results
+|
+*/
+docker run hello-world
+
+/*
+|-------------------------------------------------------------------------------
+| Test docker installation from web browser
+|-------------------------------------------------------------------------------
+| - type "docker run --help" for more information
+|   After pulling images seqvence/static-site, open your favorite browser and
+|   type the ip address and port
+|
+| E.g. http://192.168.10.1:334554
+|
+*/
+docker run -d -P seqvence/static-site
+
+/*
+| ------------------------------------------------------------------------------
+| Part 2 - Intro to Docker Commands
+| ------------------------------------------------------------------------------
+| Part 2 is step to showing you Docker basic commands
+|
+| ------------------------------------------------------------------------------
+| Instruction
+| ------------------------------------------------------------------------------
+| 1. Show Docker Containers
+| 2. Show Docker Images
+|
+*/
+
+/*
+| -------------------------------------------------------------------------------
+| List Docker Container
+| -------------------------------------------------------------------------------
+| Container is a standardized unit of software, A container image is a
+| lightweight, stand-alone, executable package of a piece of software that
+| includes everything needed to run it: code, runtime, system tools, system
+| libraries, settings.
+| Container will show with this format:
+|
+| CONTAINER ID | IMAGE | COMMAND | CREATED | STATUS | PORTS | NAMES
+|
+| - type "docker ps --help" for more information
+|
+*/
+docker ps
+docker ps -aq
+
+docker container --help
+docker container ls
+docker container ls --all
+docker container ls -aq
+
+/*
+| -------------------------------------------------------------------------------
+| List Docker image
+| -------------------------------------------------------------------------------
+| Docker Image is the template (application plus required binaries and
+| libraries) needed to build a running Docker Container (the running instance
+| of that image).
+|
+| Docker images will showing like this format:
+| REPOSITORY | TAG | IMAGE ID | CREATED | SIZE
+|
+*/
+docker image ls
+docker images -q
+
+/*
+| -------------------------------------------------------------------------------
+| Remove docker containers
+| -------------------------------------------------------------------------------
+| - type "docker container --help" for more information
+| - Eg:
+|      docker container rm <container_id>
+|
+*/
+docker container rm cc6a1a568be9
+
+/*
+| ------------------------------------------------------------------------------
+| Part 3 - Search any images from Docker Hub in Terminal
+| ------------------------------------------------------------------------------
+| Part 3 will showing yo how to search any Docker images in terminal
+|
+| Docker Hub is a public repository that contains a variety of image templates,
+| you can access them from either Terminal or the web browser.
+|
+*/
+
+/*
+| -------------------------------------------------------------------------------
+| Search any image from Docker HUB from Terminal
+| -------------------------------------------------------------------------------
+|
+| - You can browse image from browser by typing hub.docker.com
+| - Fortmat:
+|   docker search --filter=is-automated=true --filter=stars=1 fedora
+|
+*/
+docker search codeigniter
+
+/*
+| ------------------------------------------------------------------------------
+| Part 4 - Build Images
+| ------------------------------------------------------------------------------
+| Part 4 is the next basic step to learn how to build an image using image
+| from Docker Hub
+|
+*/
+
+/*
+| -------------------------------------------------------------------------------
+| Run Your first APP, E.g. Ubuntu 16.04
+| -------------------------------------------------------------------------------
+| First, pull Ubuntu 16.04 image from Docker Hub
+| - Fortmat:
+|           docker pull app_name
+| - Run the image using this command:
+|       docker run -it <app_name:tag> <command>
+|   Or
+|       docker run -i -t <app_name:tag> <command>
+| Second, run anyting command like APT
+| Third, build it.
+|
+*/
+docker pull ubuntu:16.04
+docker run -it ubuntu:16.04 bash
+
+apt install update
+apt install curl
+
+docker commit 73db941f0ca1 umam212/uwlr:1.0
+docker images
+
+/*
+| ------------------------------------------------------------------------------
+| Part 5 - Dockerfile
+| ------------------------------------------------------------------------------
+| Dockerfile is a text document that contains all the commands a user could
+| call on the command line to assemble an image.
+|
+| ------------------------------------------------------------------------------
+| Instruction
+| ------------------------------------------------------------------------------
+| 1. Create a Dockerfile
+| 2. CMD Instruction
+| 3. ENTRYPOINT Instruction
+|
+*/
+
+/*
+|-------------------------------------------------------------------------------
+| Create Dockerfile
+|-------------------------------------------------------------------------------
+| A Dockerfile is a configuration file that contains instructions
+| for building a Docker image.
+|       - FROM  -> instruction specifies what the base image should be
+|       - RUN   -> instruction specifies a command to execute
+|
+*/
+mkdir test
+cd test
+
+vi Dockerfile
+
+FROM ubuntu:16.04
+RUN apt-get update
+RUN apt-get install -y curl
+RUN apt-get install -y vim
+
+/**** OR */
+FROM ubuntu:16.04
+RUN apt-get update && apt-get install -y \
+                                        curl \
+                                        vim \
+                                        iputils-ping
+
+/*
+|-------------------------------------------------------------------------------
+| CMD Instruction
+|-------------------------------------------------------------------------------
+| CMD is defines a default command to execute when a container is
+| created
+|
+| - CMD performs no action during the image build
+| - Shell format and EXEC format
+|   Shell format:
+|               CMD ping 127.0.0.1 -c 30
+|   Exec format:
+|               CMD ["ping", "127.0.0.1", "-c", "30"]
+| - Can only be specified once in a Dockerfile
+| - Can be overridden at run time
+|
+| --* This instruction uses an existing Dockerfile *--
+|
+*/
+vi Dockerfile
+
+/**** add the following command at the bottom line */
+CMD ["ping", "127.0.0.1", "-c", "10"]
+
+/**** run "docker build" again */
+docker build -t umam212/uwlr:1.1 .
+docker run umam212/uwlr:1.1
+
+/**** you can override CMD instruction */
+docker run umam212/uwlr:1.1 echo "Halo Dunia"
+
+/*
+|-------------------------------------------------------------------------------
+| ENTRYPOINT Instruction
+|-------------------------------------------------------------------------------
+| - Defines the command that will run when a container in executed
+| - Run time arguments and CMD instruction are passed as parameter
+|   to the ENTRYPOINT instruction
+| - Shell and EXEC form
+| - EXEC form preferred as shell form cannot accept arguments at run
+|   time
+| - Container essentially runs as an executable
+|
+| E.g. = ENTRYPOINT ["ping"]
+|
+| --* This instruction uses an existing Dockerfile *--
+|
+*/
+vi Dockerfile
+
+/**** now delete CMD line and replace using following command */
+ENTRYPOINT ["ping"]
+
+/**** let's build and run */
+docker build -t umam212/uwlr:1.2 .
+docker run umam212/uwlr:1.2
+
+/**** you will see the ping usage guide, don't worry, let's try this */
+docker run umam212/uwlr:1.2 127.0.0.1 -c 10
+
+/*
+| ------------------------------------------------------------------------------
+| Part 6 - Managing Images and Container
+| ------------------------------------------------------------------------------
+| This step will manage the image and the container
+|
+| ------------------------------------------------------------------------------
+| INSTRUCTION
+| ------------------------------------------------------------------------------
+| 1. Start and Stop Container
+| 2. Getting Terminal Access
+| 3. Deleting Containers
+| 4. Deleting Local Images
+|
+*/
+
+/*
+| -------------------------------------------------------------------------------
+| Start and Stop Containers
+| -------------------------------------------------------------------------------
+| - Find your container first with "docker ps" and note the ID or
+|   name
+| - "docker start" and "docker stop"
+| - List all containers:
+|   docker ps -a
+| - Start a container using the container ID:
+|   docker start <container_ID>
+| - Stop a container using the container ID:
+|   docker stop <container_ID>
+|
+| Option "--detach , -d" Will run container in background and print container ID
+| You can show more option with the following command:
+| docker run --help
+|
+| Or you can visiting the Docker Documentation with this URL:
+| https://docs.docker.com/engine/reference/commandline/run/#parent-command
+|
+*/
+docker run -d nginx
+
+/**** check your container, focus on container status */
+docker ps
+
+/**** Note the container ID and then stop it */
+docker stop 0fe437112873
+
+/**** Check your container again, no containers are running */
+docker ps
+
+/**** You can see all the containers on your machine with this command: */
+docker ps -a
+
+/**** Start again using the container name */
+docker start admiring_ptolemy
+
+/**** Check the container again */
+docker ps
+
+/*
+| -------------------------------------------------------------------------------
+| Getting Terminal Access
+| -------------------------------------------------------------------------------
+| - Use "docker exec" command to start another process within a
+|   container
+| - Executable /bin/bash to get a bash shell
+| - E.g. : docker exec -it [container_ID] /bin/bash
+| - Exiting from the terminal will not terminate the container
+|
+| This step uses nginx containers that are already running in the previous step
+| You can use the "docker ps" and note the ID
+*/
+docker exec -it 0fe437112873 bash
+
+/* 
+| Update and install the procps to show the all process you want.
+| Rilax, the EngineX image are based on Debian 9 called Stretch
+| So, you can use the APT to do :P
+*/
+apt-get update && apt-get install -y procps
+cd
+
+/**** let's checking the process */
+ps -ef
+
+/**** exit from bash */
+exit
+
+/**** Check the EngineX container, he's still running */
+docker ps
+
+/*
+| -------------------------------------------------------------------------------
+| Deleting Containers
+| -------------------------------------------------------------------------------
+| - Only delete containers that have been stopped
+| - Use "docker rm" command
+| - Specify the container ID or name
+| - E.g. : docker rm 0fe437112873
+*/
+docker stop 0fe437112873
+docker ps -a
+docker rm 0fe437112873
+docker ps -a
+
+/*
+| -------------------------------------------------------------------------------
+| Deleting Local Images
+| -------------------------------------------------------------------------------
+| - Use "docker rmi" comand
+| - E.g. : docker rmi [image_ID]
+|     or : docker rmi [repo:tag]
+| - If an image is tagged multiple times, remove each tag
+*/
+docker images
+
+/**** note the image ID or repo and tag name */
+docker rmi umam212/uwlr:1.0
+
+/*
+| -------------------------------------------------------------------------------
+| Part 7 - Case Study - How to Dockerizing WordPress?
+| -------------------------------------------------------------------------------
+| Part 7 we will try to install and run multi-container application.
+|
+| -------------------------------------------------------------------------------
+| Instruction
+| -------------------------------------------------------------------------------
+| 1. Install Docker Compose
+| 2. Setup WordPress
+| 3. Configure Docker Compose
+| 4. Run Docker Compose
+| 5. Accessing the Container
+| 6. Reference
+|
+*/
+
+/*
+| -------------------------------------------------------------------------------
+| Install Docker Compose
+| -------------------------------------------------------------------------------
+| Compose is a tool for defining and running multi-container Docker
+| applications. With Compose, you use a YAML file to configure your
+| application’s services. Then, with a single command, you create and start
+| all the services from your configuration.
+|
+| Docker-compose is a script written in python. You can install the
+| docker-compose package using APT.
+|
+*/
+sudo apt install docker-compose
+docker-compose -v
+
+/*
+| -------------------------------------------------------------------------------
+| Setup WordPress
+| -------------------------------------------------------------------------------
+| WordPress is a free and open-source content management system (CMS) based on
+| PHP and MySQL. To function, WordPress has to be installed on a web server,
+| which would either be part of an Internet hosting service or a network host
+| in its own right.
+|
+| We will deploy the 'Wordpress' PHP application with EnginX as the web server,
+| and MariaDB for the MySQL database as docker containers managed by
+| docker-compose. Each application (Wordpress, Nginx, and MySQL) will run in
+| its own container, you can see the list below:
+| - EngineX   : We use the official docker image, latest version 'nginx: latest'.
+| - WordPress : Wordpress provides some docker images on docker-hub, and we will
+|               use WordPress 4.9.6 with PHP-FPM 7.2 on it.
+| - MySQL     : We will use MariaDB official container, latest version.
+|
+| File and directory list of the project:
+|
+| wordpress-compose/
+| |
+| |---docker-compose.yml
+| |
+| |---nginx/
+| |
+| |---db-data/
+| |
+| |---logs/
+| |   |
+| |   |---nginx/
+| |   |---mariadb/
+| |   |---php-fpm/
+| |
+| |---wordpress
+|
+| - docker-compose.yml : This is the docker-compose configuration file, you must
+|                        create it when starting new docker-compose project.
+| - nginx/             : This directory is used for our additional nginx configuration
+|                        like the virtual host etc.
+| - db-data/           : The volume/directory for the mysql data. The sql from data
+|                        '/var/lib/mysql' is mounted to db-data directory.
+| - logs/              : Directory for application log, nginx, mariadb and php-fpm.
+| - wordpress/         : All wordpress files will be available in that directory.
+|
+*/
+mkdir -p wordpress-compose
+cd wordpress-compose/
+
+touch docker-compose.yml
+mkdir -p nginx/
+mkdir -p db-data/
+mkdir -p logs/nginx/
+mkdir -p wordpress/
+
+vi nginx/wordpress.conf
+server {
+    listen 80;
+    server_name 172.17.0.1;
+
+    root /var/www/html;
+    index index.php;
+
+    access_log /var/log/nginx/nginx-access.log;
+    error_log /var/log/nginx/nginx-error.log;
+
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass wordpress:9000;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+    }
+}
+
+/*
+| -------------------------------------------------------------------------------
+| Configure Docker Compose
+| -------------------------------------------------------------------------------
+| In this step, we will start editing the docker-compose.yml file. When you
+| want to start the docker-compose project, make sure you create the
+| docker-compose.yml file first like we do it below.
+|
+| First, open the docker-compose.yml file using vi editor.
+| Second, copy-paste configuration below (nginx, mysql, wordpress)
+|
+| - Nginx Configuration
+|   Define your services, on the first line we will define Nginx. We are using
+|   Nginx official docker image, the latest version, and configure port mapping
+|   for port 80 on the container to port 80 on the host. Next, configure the
+|   docker volumes, the volume for our Nginx virtual host configuration, volume
+|   for Nginx log files and the web root directory volume '/var/www/html'.
+|   The Nginx container is linked to WordPress container.
+| - MySQL Configuration
+|   Define the MySQL server. We are using the MariaDB image, latest version.
+|   Configure port mapping for the container on port 3306, and configure
+|   the MySQL root password with the environment variable 'MYSQL_ROOT_PASSWORD'.
+|   Finally, configure the container volume for the MySQL data directory.
+| - WordPress and the PHP 7.2 FPM Configuration
+|   Then we will configure the WordPress service by using the WordPress 4.9.6
+|   docker image with PHP-FPM 7.0 installed. Configure the port for PHP-fpm on
+|   port 9000, enable the docker volume for the web directory '/var/www/html'
+|   to the host directory 'wordpress', setup the database by defining WordPress
+|   environment variable, and link the WordPress service to mysql.
+|
+*/
+vi docker-compose.yml
+
+nginx:
+    image: nginx:latest
+    ports:
+        - '80:80'
+    volumes:
+        - ./nginx:/etc/nginx/conf.d
+        - ./logs/nginx:/var/log/nginx
+        - ./wordpress:/var/www/html
+    links:
+        - wordpress
+    restart: always
+mysql:
+    image: mariadb
+    ports:
+        - '3306:3306'
+    volumes:
+        - ./db-data:/var/lib/mysql
+    environment:
+        - MYSQL_ROOT_PASSWORD=aqwe123
+    restart: always
+wordpress:
+    image: wordpress:4.9.6-php7.2-fpm
+    ports:
+        - '9000:9000'
+    volumes:
+        - ./wordpress:/var/www/html
+    environment:
+        - WORDPRESS_DB_NAME=wpdb
+        - WORDPRESS_TABLE_PREFIX=wp_
+        - WORDPRESS_DB_HOST=mysql
+        - WORDPRESS_DB_PASSWORD=aqwe123
+    links:
+        - mysql
+    restart: always
+
+/*
+| -------------------------------------------------------------------------------
+| Run Docker Compose
+| -------------------------------------------------------------------------------
+| First, Start to create the new containers with docker compose. Go to the
+| wordpress-compose directory and start the new containers based on our compose
+| file.
+|
+| Second, You can see the results of the command. Three containers were created.
+| Let's check the container status with the ps option.
+|
+| Third, see the log output from the container.
+|
+*/
+cd wordpress-compose/
+docker-compose up -d
+
+docker-compose ps
+
+docker-compose logs nginx
+docker-compose logs mysql
+docker-compose logs wordpress
+
+docker-compos down
+
+/*
+| -------------------------------------------------------------------------------
+| Install WordPress
+| -------------------------------------------------------------------------------
+| Before we do this step, let's check the available ports/open ports on the
+| system. Make sure you have 3 ports opened, port 80, 3306 and port 9000.
+|
+| Install wordpress using web browser with accessing the ip address, e.g.
+| http://192.168.10.1/
+|
+*/
+netstat -plntu
+
+/*
+| -------------------------------------------------------------------------------
+| Accessing the Container, Optional
+| -------------------------------------------------------------------------------
+| This is an additional step on how to access a container with docker-compose.
+| Check that all containers are available and show their status:
+| $ docker-compose ps
+|
+| We already have 3 containers, now we can try to login to each container.
+| - First, log in to the first Nginx container with docker-compose command.
+|   $ docker-compose exec <service> <command>
+|
+| - Second, check our WordPress virtual host configuration.
+|
+| - Third, try login to the mysql container, and then log into the mysql shell
+|   with our password on the compose file.
+|
+| - Fourth, In the 'wordpress' container, you will see all WordPress files.
+|
+*/
+docker-compose exec nginx bash
+
+cat /etc/nginx/conf.d/wordpress.conf
+
+docker-compose exec mysql bash
+mysql -u root -p
+show databases;
+
+docker-compose exec wordpress bash
+ls -lah
+
+/*
+| -------------------------------------------------------------------------------------
+| Reference
+| -------------------------------------------------------------------------------------
+| - Dockerizing WordPress with Nginx and PHP-FPM on Ubuntu 16.04
+|   https://www.howtoforge.com/tutorial/dockerizing-wordpress-with-nginx-and-php-fpm/
+|
+*/
