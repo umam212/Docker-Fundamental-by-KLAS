@@ -1,0 +1,753 @@
+/*
+| ------------------------------------------------------------------------------
+| DOCKER FUNDAMENTAL DI CANGKRUKAN KLAS, 2 JUNI 2018
+| ------------------------------------------------------------------------------
+*/
+
+/*
+| ------------------------------------------------------------------------------
+| Part 1 - Pasang Docker di Ubuntu Server 18.04
+| ------------------------------------------------------------------------------
+| Bagian pertama adalah langkah untuk menginstal Docker di Ubuntu Server 18.04
+|
+| ------------------------------------------------------------------------------
+| Instruksi
+| ------------------------------------------------------------------------------
+| 1. Pasang Docker dan Aktifkan Layanan
+| 2. Menampilkan Versi Docker dan Info terkait
+| 3. Jalankan Docker tanpa hak akses SUDO
+| 4. Uji Hasil Instalasi Docker
+|
+*/
+
+/*
+| ------------------------------------------------------------------------------
+| Pasang Docker dan Aktifkan Layanan
+| ------------------------------------------------------------------------------
+| Langkah ini digunakan untuk mengkonfigurasi repository lokal, memperbarui,
+| memasang paket docker-ce dan mengaktifkan layanan.
+|
+*/
+sudo vi /etc/apt/sources.list.d/docker.list
+
+# STABLE (NOT YET AVAILABLE)
+deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+# EDGE:
+deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic edge
+
+sudo apt update
+sudo apt install docker-ce
+sudo systemctl status docker
+sudo systemctl start docker
+sudo systemctl enable docker
+
+/*
+| ------------------------------------------------------------------------------
+| Menampilkan Versi Docker dan Info terkait
+| ------------------------------------------------------------------------------
+| Langkah ini berguna untuk mengetahui versi dan informasi tentang Docker
+|
+*/
+docker --version
+docker version
+docker info
+
+/*
+| ------------------------------------------------------------------------------
+| Jalankan Docker Tanpa Hak Akses SUDO, Optional
+| ------------------------------------------------------------------------------
+| Tanpa sudo, Anda dapat menjalankan Docker tanpa ada keraguan
+|
+*/
+sudo usermod -aG docker ${USER}
+su - ${USER}
+id -nG
+
+/*
+| ------------------------------------------------------------------------------
+| Uji Hasil Instalasi Docker
+| ------------------------------------------------------------------------------
+| Uji pemasangan docker dengan menjalankan gambar Docker sederhana
+|
+*/
+docker run hello-world
+
+/*
+|-------------------------------------------------------------------------------
+| Uji pemasangan Docker Dari Peramban Web
+|-------------------------------------------------------------------------------
+| - Ketikkan perintah "docker run --help" untuk mengetahui informasi lebih
+|   lanjut. Setelah menarik gambar seqvence/static-site, buka browser favorit 
+|   Anda dan ketikkan alamat ip beserta port-nya.
+|
+| Misalnya: http://192.168.10.1:334554
+|
+*/
+docker run -d -P seqvence/static-site
+
+/*
+| ------------------------------------------------------------------------------
+| Part 2 - Pengenalan Perintah-perintah Docker
+| ------------------------------------------------------------------------------
+| Bagian ini akan ditunjukkan penggunaan perintah dasar.
+|
+| ------------------------------------------------------------------------------
+| Instruksi
+| ------------------------------------------------------------------------------
+| 1. Menampilkan Docker Kontainer
+| 2. Menampilkan Docker Images
+|
+*/
+
+/*
+| ------------------------------------------------------------------------------
+| Menampilkan Docker Kontainer
+| ------------------------------------------------------------------------------
+| Kontainer merupakan unit perangkat lunak standar, kontainer images adalah
+| paket yang ringan, berdiri sendiri, dapat dieksekusi dari perangkat lunak
+| yang mencangkup semua yang diperlukan untuk menjalankannya; seperti kode,
+| runtime, alat sistem, pustaka sistem dan pengaturan.
+| Detail kontainer akan ditampilkan dengan format berikut:
+|
+| CONTAINER ID | IMAGE | COMMAND | CREATED | STATUS | PORTS | NAMES
+|
+| - ketikkan perintah "docker ps --help" untuk informasi lebih lanjut.
+|
+*/
+docker ps
+docker ps -aq
+
+docker container --help
+docker container ls
+docker container ls --all
+docker container ls -aq
+
+/*
+| ------------------------------------------------------------------------------
+| Menampilkan Docker Image
+| ------------------------------------------------------------------------------
+| Docker Image adalah template (aplikasi ditambah binari dan pustaka yang 
+| dibutuhkan) yang diperlukan untuk membangun Container Docker yang sedang 
+| berjalan (contoh yang berjalan dari gambar itu).
+|
+| Docker images ditampilkan dengan format berikut:
+| REPOSITORY | TAG | IMAGE ID | CREATED | SIZE
+|
+*/
+docker image ls
+docker images -q
+
+/*
+| ------------------------------------------------------------------------------
+| Menghapus Docker Kontainer
+| ------------------------------------------------------------------------------
+| - Ketikkan perintah "docker container --help" untuk informasi lebih lanjut
+| - Contoh:
+|      docker container rm <container_id>
+|
+*/
+docker container rm cc6a1a568be9
+
+/*
+| ------------------------------------------------------------------------------
+| Part 3 - Cari Image Apa-pun Dari Docker Hub di Terminal
+| ------------------------------------------------------------------------------
+| Docker Hub adalah repositori publik yang berisi berbagai template gambar, 
+| Anda dapat mengaksesnya dari Terminal atau peramban web.
+|
+| - Anda dapat mengetikkan alamat http://hub.docker.com di peramban web anda.
+| - Jika menggunakan Terminal, berikut ini formatpenggunaannya:
+|   docker search --filter=is-automated=true --filter=stars=1 fedora
+|
+*/
+docker search codeigniter
+
+/*
+| ------------------------------------------------------------------------------
+| Part 4 - Membangun Image
+| ------------------------------------------------------------------------------
+| Bagian 4 adalah langkah dasar berikutnya untuk mempelajari cara membuat 
+| image menggunakan image dari Docker Hub.
+|
+*/
+
+/*
+| ------------------------------------------------------------------------------
+| Jalankan App pertama anda, misalnya: Ubuntu 16.04
+| ------------------------------------------------------------------------------
+| Pertama, tarik gambar Ubuntu 16.04 dari registri atau Docker Hub
+| - Format:
+|       docker pull app_name
+| - Jalankan image tersebut dengan perintah:
+|       docker run -it <app_name:tag> <command>
+|   atau
+|       docker run -i -t <app_name:tag> <command>
+| Kedua, jalankan beberapa perintah, seperti APT
+| Ketiga, bangun hasil konfigurasi.
+|
+*/
+docker pull ubuntu:16.04
+docker run -it ubuntu:16.04 bash
+
+apt install update
+apt install curl
+
+docker commit 73db941f0ca1 umam212/uwlr:1.0
+docker images
+
+/*
+| ------------------------------------------------------------------------------
+| Part 4 - Dockerfile
+| ------------------------------------------------------------------------------
+| Dockerfile adalah dokumen teks yang berisi semua perintah yang dapat dipanggil
+| pengguna pada baris perintah untuk merakit sebuah image.
+|
+| ------------------------------------------------------------------------------
+| Instruksi
+| ------------------------------------------------------------------------------
+| 1. Mulai membuat Dockerfile
+| 2. Instruksi Perintah
+| 3. Instruksi ENTRYPOINT
+|
+*/
+
+/*
+| ------------------------------------------------------------------------------
+| Create Dockerfile
+| ------------------------------------------------------------------------------
+| Dockerfile adalah file konfigurasi yang berisi instruksi untuk membangun 
+| Docker image.
+|       - FROM  -> instruksi yang menentukan basis image seharusnya
+|       - RUN   -> instruksi yang menentukan perintah untuk dieksekusi
+|
+*/
+mkdir test
+cd test
+
+vi Dockerfile
+
+FROM ubuntu:16.04
+RUN apt-get update
+RUN apt-get install -y curl
+RUN apt-get install -y vim
+
+/**** OR */
+FROM ubuntu:16.04
+RUN apt-get update && apt-get install -y \
+                                        curl \
+                                        vim \
+                                        iputils-ping
+
+/*
+| ------------------------------------------------------------------------------
+| Instruksi CMD
+| ------------------------------------------------------------------------------
+| CMD didefinisikan sebagai perintah default untuk dijalankan ketika sebuah 
+| kontainer dibuat.
+|
+| - CMD tidak melakukan tindakan selama pembuatan image
+| - Format shell dan format EXEC
+|   Format Shell :
+|               CMD ping 127.0.0.1 -c 30
+|   Format Exec :
+|               CMD ["ping", "127.0.0.1", "-c", "30"]
+| - Can only be specified once in a Dockerfile
+| - Dapat diganti pada waktu proses
+|
+| --* Instruksi ini menggunakan Dockerfile yang sudah ada *--
+|
+*/
+vi Dockerfile
+
+/*
+| ------------------------------------------------------------------------------
+| Tambahkan baris perintah berikut dibagian paling bawah
+| ------------------------------------------------------------------------------
+*/
+CMD ["ping", "127.0.0.1", "-c", "10"]
+
+/*
+| ------------------------------------------------------------------------------
+| Jalankan lagi perintah "docker build"
+| ------------------------------------------------------------------------------
+*/
+docker build -t umam212/uwlr:1.1 .
+docker run umam212/uwlr:1.1
+
+/*
+| ------------------------------------------------------------------------------
+| Anda dapat mengganti instruksi CMD
+| ------------------------------------------------------------------------------
+*/
+docker run umam212/uwlr:1.1 echo "Halo Dunia"
+
+/*
+| ------------------------------------------------------------------------------
+| ENTRYPOINT Instruction
+| ------------------------------------------------------------------------------
+| - Menentukan perintah yang akan dijalankan ketika sebuah kontainer di eksekusi
+| - Argumen waktu berjalan dan instruksi CMD dilewatkan sebagai parameter ke 
+|   instruksi ENTRYPOINT
+| - Berformat Shell and EXEC
+| - Bentuk EXEC disukai sebagai bentuk shell tidak dapat menerima argumen pada 
+|   waktu proses
+| - Kontainer pada dasarnya berjalan sebagai eksekutabel.
+|
+| Misal = ENTRYPOINT ["ping"]
+|
+| --* Instruksi ini menggunakan Dockerfile yang sudah ada *--
+|
+*/
+vi Dockerfile
+
+/*
+| ------------------------------------------------------------------------------
+| Hapus baris CMD dan ganti dengan baris perintah berikut:
+| ------------------------------------------------------------------------------
+*/
+ENTRYPOINT ["ping"]
+
+/*
+| ------------------------------------------------------------------------------
+| Mari kita bangun ulang dan jalankan hasilnya
+| ------------------------------------------------------------------------------
+*/
+docker build -t umam212/uwlr:1.2 .
+docker run umam212/uwlr:1.2
+
+/*
+| ------------------------------------------------------------------------------
+| Anda akan melihat panduan penggunaan ping, jangan khawatir, mari coba ini
+| ------------------------------------------------------------------------------
+*/
+docker run umam212/uwlr:1.2 127.0.0.1 -c 10
+
+/*
+| ------------------------------------------------------------------------------
+| Part 6 - Mengelola Image dan Kontainer
+| ------------------------------------------------------------------------------
+| Langkah ini akan menunjukkan kepada anda hal-hal yang berhubungan dengan
+| pengelolaan image dan kontainer
+|
+| ------------------------------------------------------------------------------
+| INSTRUKSI
+| ------------------------------------------------------------------------------
+| 1. Mulai dan Berhentikan Kontainer
+| 2. Mendapatkan Akses Terhadap Terminal
+| 3. Menghapus Kontainer
+| 4. Menghapus Image Lokal
+|
+*/
+
+/*
+| ------------------------------------------------------------------------------
+| Mulai dan Berhentikan Kontainer
+| ------------------------------------------------------------------------------
+| - Temukan kontainer Anda terlebih dahulu dengan "docker ps" dan catat ID atau
+|   nama dari kontainer.
+| - Lihat daftar semua kontainer yang ada pada sistem:
+|   "docker ps -a"
+| - Nyalakan kontainer menggunakan ID kontainer:
+|   docker start <container_ID>
+| - Matikan kontainer menggunakan ID kontainer:
+|   docker stop <container_ID>
+|
+| Opsi "--detach, -d" Akan menjalankan kontainer di latar belakang dan ID 
+| kontainer cetak Anda dapat menampilkan lebih banyak opsi dengan perintah
+| berikut:
+| docker run --help
+|
+| Anda juga dapat mengunjungi pusat dokumentasi Docker melalui URL ini:
+| https://docs.docker.com/engine/reference/commandline/run/#parent-command
+|
+*/
+docker run -d nginx
+
+/*
+| ------------------------------------------------------------------------------
+| Periksa kontainer anda dan fokuskan pada bagian STATUS
+| ------------------------------------------------------------------------------
+*/
+docker ps
+
+/*
+| ------------------------------------------------------------------------------
+| Catatlah kontainer ID dan hentikan
+| ------------------------------------------------------------------------------
+*/
+docker stop 0fe437112873
+
+/*
+| ------------------------------------------------------------------------------
+| Periksa kontainer anda lagi, maka tidak ada kontainer yang berjalan
+| ------------------------------------------------------------------------------
+*/
+docker ps
+
+/*
+| ------------------------------------------------------------------------------
+| Anda dapat memeriksa semua kontainer yang ada dengan perintah berikut:
+| ------------------------------------------------------------------------------
+*/
+docker ps -a
+
+/*
+| ------------------------------------------------------------------------------
+| Sekarang mari kita coba menjalankan kontainer diatas menggunakan nama 
+| kontainer
+| ------------------------------------------------------------------------------
+docker start admiring_ptolemy
+
+/*
+| ------------------------------------------------------------------------------
+| Silahkan periksa kembali untuk memastikan apakah kontainer tersebut 
+| benar-benar sudah berjalan.
+| ------------------------------------------------------------------------------
+*/
+docker ps
+
+/*
+| ------------------------------------------------------------------------------
+| Mendapatkan Akses Terminal
+| ------------------------------------------------------------------------------
+| - Gunakan perintah "docker exec" untuk memulai proses lain pada sebuah 
+|   kontainer
+| - Dapat mengeksekusi /bin/bash untuk mendapatkan shell bash
+| - Contoh penggunaan : docker exec -it [container_ID] /bin/bash
+| - Keluar dari akses terminal tidak akan mematikan kontainer
+|
+| Langkah ini menggunakan kontainer nginx yang sudah berjalan pada langkah 
+| sebelumnya Anda dapat menggunakan "docker ps" dan perhatikan ID
+*/
+docker exec -it 0fe437112873 bash
+
+/*
+| ------------------------------------------------------------------------------ 
+| Perbarui dan instal paket procps untuk menunjukkan semua proses yang Anda 
+| inginkan.
+| Tenang, image EngineX didasarkan pada Debian 9 yang disebut Stretch
+| Jadi, anda dapat menggunakan APT :P
+| ------------------------------------------------------------------------------
+*/
+apt-get update && apt-get install -y procps
+cd
+
+/*
+| ------------------------------------------------------------------------------
+| Mari cek proses yang sedang berjalan
+| ------------------------------------------------------------------------------
+*/
+ps -ef
+
+/*
+| ------------------------------------------------------------------------------
+| ketikkan perintah "exit" untuk keluar dari BASH
+| ------------------------------------------------------------------------------
+exit
+
+/*
+| ------------------------------------------------------------------------------
+| Periksa kontainer EngineX, dia tetap berjalan
+| ------------------------------------------------------------------------------
+*/
+docker ps
+
+/*
+| ------------------------------------------------------------------------------
+| Menghapus Kontainer
+| ------------------------------------------------------------------------------
+| - Hanya bisa menghapus kontainer yang telah dihentikan
+| - Gunakan perintah "docker rm"
+| - Tentukan ID atau nama kontainer
+| - Misalnya : docker rm 0fe437112873
+*/
+docker stop 0fe437112873
+docker ps -a
+docker rm 0fe437112873
+docker ps -a
+
+/*
+| ------------------------------------------------------------------------------
+| Menghapus Image Lokal
+| ------------------------------------------------------------------------------
+| - Gunakan perintah "docker rmi"
+| - Misalnya : docker rmi [image_ID]
+|            : docker rmi [repo:tag]
+| - Jika suatu gambar ditandai beberapa kali, hapus setiap tag.
+*/
+docker images
+
+/*
+| ------------------------------------------------------------------------------
+| Catat image ID atau repo dan nama tag
+| ------------------------------------------------------------------------------
+*/
+docker rmi umam212/uwlr:1.0
+
+/*
+| ------------------------------------------------------------------------------
+| Part 7 - Studi Kasus - Bagaimana cara Dockerizing WordPress?
+| ------------------------------------------------------------------------------
+| Bagian ini menjelaskan cara memasang dan menjalankan multi kontainer, yaitu
+| LEMP Stack dan WordPress
+|
+| ------------------------------------------------------------------------------
+| Instrukti
+| ------------------------------------------------------------------------------
+| 1. Pasang Docker Compose
+| 2. Mempersiapkan WordPress
+| 3. Konfigurasi Docker Compose
+| 4. Jalankan Docker Compose
+| 5. Mengakses Kontainer
+| 6. Sumber
+|
+*/
+
+/*
+| ------------------------------------------------------------------------------
+| Pasang Docker Compose
+| ------------------------------------------------------------------------------
+| Compose adalah alat untuk mendefinisikan dan menjalankan aplikasi Docker 
+| multi-container. Dengan Compose, Anda menggunakan file YAML untuk 
+| mengonfigurasi layanan aplikasi Anda. Kemudian, dengan satu perintah, Anda 
+| membuat dan memulai semua layanan dari konfigurasi Anda.
+|
+| Docker-compose adalah skrip yang ditulis dengan python. Anda dapat menginstal
+| paket docker-compose menggunakan APT.
+|
+*/
+sudo apt install docker-compose
+docker-compose -v
+
+/*
+| ------------------------------------------------------------------------------
+| Mempersiapkan WordPress
+| ------------------------------------------------------------------------------
+| WordPress adalah sistem manajemen konten sumber terbuka dan gratis (CMS) 
+| berdasarkan PHP dan MySQL. Agar berfungsi, WordPress harus diinstal pada 
+| server web, yang akan menjadi bagian dari layanan hosting internet atau host
+| jaringan dalam dirinya sendiri.
+|
+| Kami akan menyebarkan aplikasi PHP 'Wordpress' dengan EnginX sebagai server
+| web, dan MariaDB untuk database MySQL sebagai Doceker kontainer yang dikelola
+| oleh Docker. Setiap aplikasi (Wordpress, Nginx, dan MySQL) akan berjalan dalam
+| kontainernya sendiri, Anda dapat melihat daftar di bawah ini:
+| - EngineX   : Kami menggunakan image Docker resmi, nginx versi 'nginx: latest'
+| - WordPress : Wordpress menyediakan beberapa gambar docker di docker-hub, dan
+|               kami akan menggunakan WordPress 4.9.6 dengan PHP-FPM 7.2 di
+|               atasnya.
+| - MySQL     : Kami akan menggunakan kontainer resmi MariaDB, versi terbaru.
+|
+| Berkas dan direktori projek kali ini:
+|
+| wordpress-compose/
+| |
+| |---docker-compose.yml
+| |
+| |---nginx/
+| |
+| |---db-data/
+| |
+| |---logs/
+| |   |
+| |   |---nginx/
+| |   |---mariadb/
+| |   |---php-fpm/
+| |
+| |---wordpress
+|
+| - docker-compose.yml : Ini adalah file konfigurasi docker-compose, Anda harus
+|                        membuatnya ketika memulai proyek docker-compose baru.
+| - nginx/             : Direktori ini digunakan untuk konfigurasi nginx
+|                        tambahan kami seperti virtual host, dll.
+| - db-data/           : Volume atau direktori untuk data mysql. Data SQL dari
+|                        '/var/lib/mysql' sudah terpasang ke direktori db-data.
+| - logs/              : Direktori untuk log aplikasi, nginx, mariadb, dan
+|                        php-fpm.
+| - wordpress/         : Semua file wordpress akan tersedia di direktori ini.
+|
+*/
+mkdir -p wordpress-compose
+cd wordpress-compose/
+
+touch docker-compose.yml
+mkdir -p nginx/
+mkdir -p db-data/
+mkdir -p logs/nginx/
+mkdir -p wordpress/
+
+vi nginx/wordpress.conf
+server {
+    listen 80;
+    server_name 172.17.0.1;
+
+    root /var/www/html;
+    index index.php;
+
+    access_log /var/log/nginx/nginx-access.log;
+    error_log /var/log/nginx/nginx-error.log;
+
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass wordpress:9000;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+    }
+}
+
+/*
+| ------------------------------------------------------------------------------
+| Konfigurasi Docker Compose
+| ------------------------------------------------------------------------------
+| Pada langkah ini, kita akan mulai mengedit file docker-compose.yml. Ketika
+| Anda ingin memulai proyek docker-compose, pastikan Anda membuat file
+| docker-compose.yml terlebih dahulu seperti yang kita lakukan di bawah ini.
+|
+| Pertama, buka file docker-compose.yml menggunakan editor vi.
+| Kedua, salin dan tempel konfigurasi di bawah ini (nginx, mysql, wordpress)
+|
+| - Konfigurasi EngineX
+|   Tentukan layanan Anda, pada baris pertama kami akan mendefinisikan Nginx.
+|   Kami menggunakan gambar docker resmi Nginx, versi terbaru, dan 
+|   mengkonfigurasi pemetaan port untuk port 80 pada kontainer ke port 80 pada 
+|   host. Selanjutnya, konfigurasikan volume docker, volume untuk konfigurasi 
+|   virtual host Nginx kami, volume untuk file log Nginx dan volume direktori 
+|   root web '/var/www/html'. Wadah Nginx terkait dengan wadah WordPress.
+| - Konfigurasi MySQL
+|   Tentukan server MySQL. Kami menggunakan gambar MariaDB, versi terbaru. 
+|   Konfigurasikan pemetaan port untuk penampung pada port 3306, dan 
+|   konfigurasikan kata sandi root MySQL dengan variabel lingkungan 
+|   'MYSQL_ROOT_PASSWORD'. Terakhir, konfigurasikan volume penampung untuk 
+|   direktori data MySQL.
+| - Konfigurasi WordPress dan PHP 7.2 FPM
+|   Kemudian kita akan mengkonfigurasi layanan WordPress dengan menggunakan 
+|   gambar docker WordPress 4,9,6 dengan PHP-FPM 7.0 diinstal. Konfigurasi port 
+|   untuk PHP-fpm pada port 9000, aktifkan volume docker untuk direktori web 
+|   '/var/www/html' ke direktori host 'wordpress', atur database dengan 
+|   mendefinisikan variabel lingkungan WordPress, dan tautkan layanan WordPress 
+|   ke mysql.
+|
+*/
+vi docker-compose.yml
+
+nginx:
+    image: nginx:latest
+    ports:
+        - '80:80'
+    volumes:
+        - ./nginx:/etc/nginx/conf.d
+        - ./logs/nginx:/var/log/nginx
+        - ./wordpress:/var/www/html
+    links:
+        - wordpress
+    restart: always
+mysql:
+    image: mariadb
+    ports:
+        - '3306:3306'
+    volumes:
+        - ./db-data:/var/lib/mysql
+    environment:
+        - MYSQL_ROOT_PASSWORD=aqwe123
+    restart: always
+wordpress:
+    image: wordpress:4.9.6-php7.2-fpm
+    ports:
+        - '9000:9000'
+    volumes:
+        - ./wordpress:/var/www/html
+    environment:
+        - WORDPRESS_DB_NAME=wpdb
+        - WORDPRESS_TABLE_PREFIX=wp_
+        - WORDPRESS_DB_HOST=mysql
+        - WORDPRESS_DB_PASSWORD=aqwe123
+    links:
+        - mysql
+    restart: always
+
+/*
+| ------------------------------------------------------------------------------
+| Jalankan Docker Compose
+| ------------------------------------------------------------------------------
+| Pertama, Mulai buat kontainer baru dengan pembuat dokter. Buka direktori 
+| wordpress-compose dan mulai wadah baru berdasarkan file tulis kami.
+|
+| Kedua, Anda dapat melihat hasil perintah. Tiga kontainer telah dibuat.
+| Mari kita periksa status kontainer dengan opsi "ps".
+|
+| Ketiga, lihat keluaran catatan dari kontainer.
+|
+*/
+cd wordpress-compose/
+docker-compose up -d
+
+docker-compose ps
+
+docker-compose logs nginx
+docker-compose logs mysql
+docker-compose logs wordpress
+
+docker-compos down
+
+/*
+| ------------------------------------------------------------------------------
+| Pasang WordPress
+| ------------------------------------------------------------------------------
+| Sebelum kita melakukan langkah ini, mari kita periksa port yang tersedia atau 
+| terbuka pada sistem. Pastikan Anda membuka 3 port, port 80, 3306, dan port 
+| 9000.
+|
+| Pasang wordpress menggunakan browser web dengan mengakses alamat ip, mis.
+| http://192.168.10.1/
+|
+*/
+netstat -plntu
+
+/*
+| ------------------------------------------------------------------------------
+| Mengakses Masing-masing Kontainer
+| ------------------------------------------------------------------------------
+| Ini adalah langkah tambahan tentang cara mengakses wadah dengan buruh 
+| pelabuhan. Periksa apakah semua kontainer tersedia dan tunjukkan statusnya:
+| $ docker-compose ps
+|
+| Kami sudah memiliki 3 kontainer, sekarang kami dapat mencoba masuk ke 
+| masing-masing kontainer.
+| - Pertama, masuk ke kontainer Nginx pertama dengan perintah docker-compose.
+|   $ docker-compose exec <service> <command>
+|
+| - Kedua, periksa konfigurasi virtual host WordPress Anda.
+|
+| - Ketiga, coba login ke mysql container, dan kemudian login ke mysql shell 
+|   dengan kata sandi pada file compose.
+|
+| - Keempat, Dalam kontainer 'wordpress', Anda akan melihat semua file utama 
+|   WordPress.
+|
+*/
+docker-compose exec nginx bash
+
+cat /etc/nginx/conf.d/wordpress.conf
+
+docker-compose exec mysql bash
+mysql -u root -p
+show databases;
+
+docker-compose exec wordpress bash
+ls -lah
+
+/*
+| -------------------------------------------------------------------------------------
+| Sumber
+| -------------------------------------------------------------------------------------
+| - Dockerizing WordPress with Nginx and PHP-FPM on Ubuntu 16.04
+|   https://www.howtoforge.com/tutorial/dockerizing-wordpress-with-nginx-and-php-fpm/
+|
+*/
